@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0e10">
+<title>Программа тренировок</title>
+<style>
+:root {
+  --bg:     #0e0e10;
+  --bg2:    #18181b;
+  --bg3:    #222228;
+  --bg4:    #2c2c34;
+  --line:   rgba(255,255,255,0.07);
+  --line2:  rgba(255,255,255,0.13);
+  --t1:     #f0eff4;
+  --t2:     #9d9ba8;
+  --t3:     #55535e;
+  --rose:   #e8829a;
+  --rose2:  #c45e78;
+  --rose-bg:#2a1820;
+  --rose-bd:#4a2030;
+  --teal:   #5dd3b0;
+  --teal2:  #3aab8c;
+  --teal-bg:#0d2620;
+  --teal-bd:#1d4a3a;
+  --purple: #a78bfa;
+  --purple2:#7c5fc9;
+  --pur-bg: #1e1730;
+  --pur-bd: #3a2a60;
+  --amber:  #f5a742;
+  --amb-bg: #261800;
+  --amb-bd: #4a3000;
+  --nav-h:  66px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:#f5f4f9;--bg2:#ffffff;--bg3:#eeedf5;--bg4:#e2e0ef;
+    --line:rgba(0,0,0,0.07);--line2:rgba(0,0,0,0.13);
+    --t1:#1a1825;--t2:#5e5c6e;--t3:#a8a6b5;
+    --rose:#c0405a;--rose2:#9e2a45;--rose-bg:#fff0f3;--rose-bd:#f5c0cc;
+    --teal:#1b8a6a;--teal2:#0f6e55;--teal-bg:#eefaf5;--teal-bd:#a0dfc9;
+    --purple:#6d48d4;--purple2:#5232b0;--pur-bg:#f0ecff;--pur-bd:#c8b8f5;
+    --amber:#a06010;--amb-bg:#fff8ec;--amb-bd:#f5d898;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column}
+
+/* Topbar */
+.topbar{
+  padding:calc(var(--safe-t) + 12px) 18px 10px;
+  background:var(--bg);border-bottom:0.5px solid var(--line);
+  flex-shrink:0;
+}
+.tb-row{display:flex;align-items:flex-start;justify-content:space-between}
+.tb-title{font-size:18px;font-weight:600;letter-spacing:-.4px;line-height:1.2}
+.tb-sub{font-size:12px;color:var(--t2);margin-top:3px}
+.tb-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;background:var(--rose-bg);color:var(--rose);border:0.5px solid var(--rose-bd);white-space:nowrap}
+
+/* Scroll area */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 20px)}
+
+/* Bottom nav */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;
+  height:calc(var(--nav-h) + var(--safe-b));
+  padding-bottom:var(--safe-b);
+  background:rgba(14,14,16,.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:0.5px solid var(--line2);
+  display:flex;align-items:flex-start;padding-top:6px;z-index:100;
+}
+@media(prefers-color-scheme:light){.nav{background:rgba(245,244,249,.94)}}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer}
+.nb:active{opacity:.55}
+.nb-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background .15s}
+.nb-label{font-size:9.5px;font-weight:500;color:var(--t3);letter-spacing:.1px}
+.nb.on .nb-label{color:var(--rose)}
+.nb.on .nb-icon{background:var(--rose-bg)}
+
+/* Panels */
+.pane{display:none;padding:14px 14px 0}
+.pane.on{display:block}
+
+/* Section label */
+.slabel{font-size:10.5px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--t3);margin:16px 0 8px 2px}
+
+/* Day pill header */
+.dh{border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.dh-rose{background:var(--rose-bg);border:0.5px solid var(--rose-bd)}
+.dh-teal{background:var(--teal-bg);border:0.5px solid var(--teal-bd)}
+.dh-pur {background:var(--pur-bg);border:0.5px solid var(--pur-bd)}
+.dh-title{font-size:17px;font-weight:600;letter-spacing:-.3px;margin-bottom:4px}
+.dh-rose .dh-title{color:var(--rose)}
+.dh-teal .dh-title{color:var(--teal)}
+.dh-pur  .dh-title{color:var(--purple)}
+.dh-sub{font-size:12px;color:var(--t2);line-height:1.5}
+.dh-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.dtag{font-size:10.5px;font-weight:500;padding:2px 9px;border-radius:20px}
+.dtag-rose{background:rgba(232,130,154,.14);color:var(--rose)}
+.dtag-teal{background:rgba(93,211,176,.14);color:var(--teal)}
+.dtag-pur {background:rgba(167,139,250,.14);color:var(--purple)}
+
+/* Card */
+.card{background:var(--bg2);border:0.5px solid var(--line2);border-radius:16px;margin-bottom:10px;overflow:hidden}
+.ch{padding:8px 14px;background:var(--bg3);border-bottom:0.5px solid var(--line);font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--t2)}
+
+/* Exercise row */
+.ex{padding:12px 14px;border-bottom:0.5px solid var(--line)}
+.ex:last-child{border-bottom:none}
+.ex-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px}
+.ex-num{font-size:11px;font-weight:600;color:var(--t3)}
+.ex-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
+.eb-new{background:rgba(93,211,176,.15);color:var(--teal)}
+.eb-keep{background:rgba(255,255,255,.06);color:var(--t3)}
+.eb-mod{background:rgba(245,167,66,.14);color:var(--amber)}
+.eb-key{background:rgba(232,130,154,.15);color:var(--rose)}
+.ex-name{font-size:14.5px;font-weight:600;letter-spacing:-.2px;margin-bottom:4px;line-height:1.3}
+.ex-note{font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:8px}
+.ex-meta{display:flex;gap:5px;flex-wrap:wrap}
+.mt{font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px}
+.mt-sets{background:rgba(167,139,250,.14);color:var(--purple)}
+.mt-rest{background:rgba(255,255,255,.06);color:var(--t2)}
+.mt-wt  {background:rgba(93,211,176,.12);color:var(--teal)}
+.mt-rpe {background:rgba(245,167,66,.14);color:var(--amber)}
+
+/* Collapsible warmup / cooldown */
+.coll{border-top:0.5px solid var(--line)}
+.coll-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg3)}
+.coll-head-label{font-size:12.5px;font-weight:500}
+.ch-warm .coll-head-label{color:var(--amber)}
+.ch-cool .coll-head-label{color:var(--purple)}
+.coll-arr{font-size:10px;color:var(--t3);transition:transform .18s}
+.coll-arr.open{transform:rotate(180deg)}
+.coll-body{display:none;padding:10px 14px;font-size:12.5px;color:var(--t2);line-height:1.75;background:rgba(255,255,255,.02)}
+.coll-body.open{display:block}
+
+/* Info blocks */
+.ib{border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.6}
+.ib-amber{background:var(--amb-bg);border:0.5px solid var(--amb-bd);color:var(--t1)}
+.ib-teal {background:var(--teal-bg);border:0.5px solid var(--teal-bd);color:var(--t1)}
+.ib-rose {background:var(--rose-bg);border:0.5px solid var(--rose-bd);color:var(--t1)}
+.ib-pur  {background:var(--pur-bg);border:0.5px solid var(--pur-bd);color:var(--t1)}
+.ib-title{font-size:12px;font-weight:700;letter-spacing:.2px;margin-bottom:5px}
+.ib-amber .ib-title{color:var(--amber)}
+.ib-teal  .ib-title{color:var(--teal)}
+.ib-rose  .ib-title{color:var(--rose)}
+.ib-pur   .ib-title{color:var(--purple)}
+
+/* Nutrition */
+.kcal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kc{background:var(--bg2);border:0.5px solid var(--line2);border-radius:12px;padding:12px;text-align:center}
+.kc-label{font-size:11px;color:var(--t2);margin-bottom:5px}
+.kc-val{font-size:20px;font-weight:600;letter-spacing:-.5px}
+.kc-sub{font-size:10.5px;color:var(--t3);margin-top:3px}
+.macro-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.macro-label{font-size:12px;width:72px;flex-shrink:0;color:var(--t2)}
+.macro-track{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.macro-fill{height:100%;border-radius:3px}
+.macro-val{font-size:12px;font-weight:500;min-width:55px;text-align:right;color:var(--t1)}
+
+/* Week schedule */
+.week-grid{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.wd-row{display:flex;align-items:center;gap:10px}
+.wd-name{font-size:12px;font-weight:500;color:var(--t2);width:32px;flex-shrink:0}
+.wd-pill{flex:1;padding:9px 12px;border-radius:10px;font-size:12.5px;font-weight:500}
+.wp-rose{background:var(--rose-bg);color:var(--rose);border:0.5px solid var(--rose-bd)}
+.wp-teal{background:var(--teal-bg);color:var(--teal);border:0.5px solid var(--teal-bd)}
+.wp-pur {background:var(--pur-bg);color:var(--purple);border:0.5px solid var(--pur-bd)}
+.wp-rest{background:var(--bg2);color:var(--t3);border:0.5px solid var(--line)}
+
+/* Phase cards */
+.phase-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.pc{border-radius:12px;padding:11px 12px}
+.pc-1{background:var(--teal-bg);border:0.5px solid var(--teal-bd)}
+.pc-2{background:var(--pur-bg);border:0.5px solid var(--pur-bd)}
+.pc-3{background:var(--rose-bg);border:0.5px solid var(--rose-bd)}
+.pc-4{background:var(--amb-bg);border:0.5px solid var(--amb-bd)}
+.pc-week{font-size:10px;font-weight:700;letter-spacing:.4px;margin-bottom:4px}
+.pc-1 .pc-week{color:var(--teal)}.pc-2 .pc-week{color:var(--purple)}
+.pc-3 .pc-week{color:var(--rose)}.pc-4 .pc-week{color:var(--amber)}
+.pc-name{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:4px}
+.pc-detail{font-size:11px;color:var(--t2);line-height:1.55}
+
+/* Progress bar row for strengths */
+.str-row{padding:10px 14px;border-bottom:0.5px solid var(--line)}
+.str-row:last-child{border-bottom:none}
+.str-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.str-name{font-size:13px;font-weight:500}
+.str-badge{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px}
+.sb-great{background:rgba(93,211,176,.15);color:var(--teal)}
+.sb-ok{background:rgba(245,167,66,.14);color:var(--amber)}
+.str-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.str-fill{height:100%;border-radius:2px}
+
+/* Supplement list */
+.supp-row{padding:10px 14px;border-bottom:0.5px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.supp-row:last-child{border-bottom:none}
+.supp-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.supp-name{font-size:13.5px;font-weight:500;margin-bottom:2px}
+.supp-note{font-size:12px;color:var(--t2);line-height:1.5}
+
+/* Replace table */
+.rep-row{padding:10px 14px;border-bottom:0.5px solid var(--line)}
+.rep-row:last-child{border-bottom:none}
+.rep-out{font-size:12.5px;color:#e07070;margin-bottom:3px}
+.rep-arrow{font-size:11px;color:var(--t3);margin-bottom:2px}
+.rep-in{font-size:12.5px;color:var(--teal);font-weight:500}
+
+ul.tl{padding-left:1.1rem;font-size:13px;line-height:2;color:var(--t1)}
+ul.tl li{margin-bottom:0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-row">
+    <div>
+      <div class="tb-title">Программа тренировок</div>
+      <div class="tb-sub">31 год · 63 кг · 172 см · 3 дня/нед.</div>
+    </div>
+    <div class="tb-badge">Рекомпозиция</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- OVERVIEW -->
+<div class="pane on" id="p-home">
+  <div class="ib ib-teal">
+    <div class="ib-title">Задача программы</div>
+    Снижение % жира при сохранении и росте мышечной массы. Акцент на рельеф квадрицепсов и бицепса бедра, объём и форму ягодиц, ширину спины для визуального сужения талии.
+  </div>
+
+  <div class="slabel">Сильные стороны — база</div>
+  <div class="card">
+    <div class="str-row">
+      <div class="str-top"><span class="str-name">Ягодичный мост</span><span class="str-badge sb-great">100–120 кг</span></div>
+      <div class="str-bar"><div class="str-fill" style="width:95%;background:var(--teal)"></div></div>
+    </div>
+    <div class="str-row">
+      <div class="str-top"><span class="str-name">Жим ногами</span><span class="str-badge sb-great">150 кг</span></div>
+      <div class="str-bar"><div class="str-fill" style="width:100%;background:var(--teal)"></div></div>
+    </div>
+    <div class="str-row">
+      <div class="str-top"><span class="str-name">Становая тяга</span><span class="str-badge sb-great">85 кг</span></div>
+      <div class="str-bar"><div class="str-fill" style="width:82%;background:var(--purple)"></div></div>
+    </div>
+    <div class="str-row">
+      <div class="str-top"><span class="str-name">Присед со штангой</span><span class="str-badge sb-great">70–75 кг</span></div>
+      <div class="str-bar"><div class="str-fill" style="width:75%;background:var(--purple)"></div></div>
+    </div>
+    <div class="str-row">
+      <div class="str-top"><span class="str-name">Стаж на текущей программе</span><span class="str-badge sb-ok">≈1 год → плато</span></div>
+      <div class="str-bar"><div class="str-fill" style="width:60%;background:var(--amber)"></div></div>
+    </div>
+  </div>
+
+  <div class="slabel">Структура недели</div>
+  <div class="week-grid">
+    <div class="wd-row"><div class="wd-name">Пн</div><div class="wd-pill wp-rose">День 1 — Низ А · Квадрицепс + Ягодицы</div></div>
+    <div class="wd-row"><div class="wd-name">Вт</div><div class="wd-pill wp-rest">Отдых / велосипед</div></div>
+    <div class="wd-row"><div class="wd-name">Ср</div><div class="wd-pill wp-teal">День 2 — Верх · Спина + Плечи</div></div>
+    <div class="wd-row"><div class="wd-name">Чт</div><div class="wd-pill wp-rest">Отдых</div></div>
+    <div class="wd-row"><div class="wd-name">Пт</div><div class="wd-pill wp-pur">День 3 — Низ Б · Ягодицы + Бицепс бедра</div></div>
+    <div class="wd-row"><div class="wd-name">Сб–Вс</div><div class="wd-pill wp-rest">Отдых / активность</div></div>
+  </div>
+
+  <div class="slabel">Периодизация — 12 недель</div>
+  <div class="phase-row">
+    <div class="pc pc-1"><div class="pc-week">НЕД. 1–4</div><div class="pc-name">Адаптация</div><div class="pc-detail">3×10–12<br>РПЕ 7–8<br>Освоить новые движения</div></div>
+    <div class="pc pc-2"><div class="pc-week">НЕД. 5–8</div><div class="pc-name">Накопление</div><div class="pc-detail">3×8–10<br>РПЕ 8–9<br>+вес каждые 1–2 нед.</div></div>
+    <div class="pc pc-3"><div class="pc-week">НЕД. 9–11</div><div class="pc-name">Интенсиф.</div><div class="pc-detail">3×6–8<br>РПЕ 9<br>Максимальный стимул</div></div>
+    <div class="pc pc-4"><div class="pc-week">НЕД. 12</div><div class="pc-name">Дедлоад</div><div class="pc-detail">–20% вес<br>–1 подход<br>Восстановление ЦНС</div></div>
+  </div>
+
+  <div class="slabel">Ключевые изменения vs текущая программа</div>
+  <div class="card">
+    <div class="rep-row"><div class="rep-out">Классическая становая — основной паттерн</div><div class="rep-arrow">↓ заменить</div><div class="rep-in">RDL — ягодицы в растяжении, главный стимул гипертрофии</div></div>
+    <div class="rep-row"><div class="rep-out">Классический присед — 1 год адаптации</div><div class="rep-arrow">↓ заменить</div><div class="rep-in">Болгарский сплит-присед — новый вектор и угол нагрузки</div></div>
+    <div class="rep-row"><div class="rep-out">Жим ногами как основное</div><div class="rep-arrow">↓ перевести</div><div class="rep-in">Жим ногами — вспомогательное + широкая постановка для ягодиц</div></div>
+    <div class="rep-row"><div class="rep-out">Мало вертикальных тяг для ширины спины</div><div class="rep-arrow">↓ добавить</div><div class="rep-in">Тяга блока широким хватом — ключевое движение дня верха</div></div>
+    <div class="rep-row"><div class="rep-out">Нет Face Pull / задняя дельта слабо</div><div class="rep-arrow">↓ добавить</div><div class="rep-in">Face Pull — профилактика от ношения ребёнка, каждую неделю</div></div>
+    <div class="rep-row"><div class="rep-out">4 подхода × умеренная интенсивность</div><div class="rep-arrow">↓ изменить</div><div class="rep-in">3 подхода × РПЕ 8–9 — меньше объём, выше качество и интенсивность</div></div>
+  </div>
+</div>
+
+<!-- DAY 1 -->
+<div class="pane" id="p-d1">
+  <div class="dh dh-rose">
+    <div class="dh-title">День 1 — Низ А</div>
+    <div class="dh-sub">Квадрицепс + ягодицы · болгарский сплит-присед как основное · изоляция с дроп-сетами</div>
+    <div class="dh-tags">
+      <span class="dtag dtag-rose">Пн</span>
+      <span class="dtag dtag-rose">~65 мин</span>
+      <span class="dtag dtag-rose">Квадрицепс</span>
+      <span class="dtag dtag-rose">Ягодицы</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="coll ch-warm">
+      <div class="coll-head" onclick="tog(this)">
+        <span class="coll-head-label">🔥 Разминка — 8–10 мин</span>
+        <span class="coll-arr">▼</span>
+      </div>
+      <div class="coll-body">
+        5 мин велотренажёр умеренно<br>
+        Ягодичный мост на полу 2×15<br>
+        Кошка-корова 10 повторений<br>
+        Боковые шаги с мини-лентой 2×12 в сторону<br>
+        Активация ягодиц с лентой (сведение/разведение лёжа) 2×15<br>
+        Несколько приседаний без веса с полной глубиной
+      </div>
+    </div>
+
+    <div class="ch">Компаунд — основная нагрузка</div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">01</div><span class="ex-badge eb-new">Новое</span></div>
+      <div class="ex-name">Болгарский сплит-присед со штангой</div>
+      <div class="ex-note">Задняя нога на скамье, штанга на спине. Туловище вертикально — акцент на квадрицепс. При наклоне вперёд — акцент смещается на ягодицы. Абсолютно новый стимул после года классических приседаний. Ожидай сильную крепатуру после первой тренировки — это нормально.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×8–10 на ногу</span>
+        <span class="mt mt-rest">Отдых: 120 сек</span>
+        <span class="mt mt-wt">Нед. 1–4: 30–50 кг</span>
+        <span class="mt mt-rpe">РПЕ 8</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">02</div><span class="ex-badge eb-key">Ключевое</span></div>
+      <div class="ex-name">Ягодичный мост со штангой (пауза 1 сек наверху)</div>
+      <div class="ex-note">100–120 кг — твой рабочий вес, оставить. Добавь паузу 1 сек в верхней точке для усиления максимального сокращения ягодиц. Начиная с недели 5: чередовать каждую тренировку с B-stance (одна нога ближе к телу — основная работа).</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×10–12</span>
+        <span class="mt mt-rest">Отдых: 120 сек</span>
+        <span class="mt mt-wt">100–120 кг</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">03</div><span class="ex-badge eb-new">Новое</span></div>
+      <div class="ex-name">Фронтальный присед со штангой</div>
+      <div class="ex-note">Максимальная активация квадрицепсов, вертикальный торс, глубокая амплитуда. Рабочий вес будет ниже обычного (40–55 кг) — это нормально, приоритет глубина и контроль. Отличная смена стимула после классического приседа.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×8–10</span>
+        <span class="mt mt-rest">Отдых: 90 сек</span>
+        <span class="mt mt-wt">Нед. 1–4: 40–55 кг</span>
+        <span class="mt mt-rpe">РПЕ 8</span>
+      </div>
+    </div>
+
+    <div class="ch">Изоляция и финальная работа</div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">04</div><span class="ex-badge eb-mod">Изменено</span></div>
+      <div class="ex-name">Разгибание бедра в кроссвере (дроп-сет)</div>
+      <div class="ex-note">35/20 кг — рабочий вес сохранить. Добавь пульсы 5–7 штук в конце последнего дроп-сета в верхней точке. Следи чтобы движение шло только из тазобедренного — не из поясницы.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×12–15 + дроп</span>
+        <span class="mt mt-rest">Отдых: 60 сек</span>
+        <span class="mt mt-wt">35/20 кг</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">05</div><span class="ex-badge eb-new">Новое</span></div>
+      <div class="ex-name">Kas Glute Bridge (пульсирующий)</div>
+      <div class="ex-note">Без штанги или лёгкий вес. Амплитуда всего 5–10 см вверх-вниз, ягодицы не касаются пола никогда. 25–30 медленных повторений — финальное сожжение ягодичных в сокращённой позиции. Очень эффективно для формы.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">2–3×25–30</span>
+        <span class="mt mt-rest">Отдых: 45 сек</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">06</div><span class="ex-badge eb-keep">Остаётся</span></div>
+      <div class="ex-name">Отведение ног в тренажёре сидя — дроп-сет</div>
+      <div class="ex-note">53/41 кг — рабочий вес. Добавь паузу 1 сек в крайней точке отведения. Следи за тем чтобы пресс был напряжён — не отклоняться назад.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×15+15</span>
+        <span class="mt mt-rest">Отдых: 60 сек</span>
+        <span class="mt mt-wt">53/41 кг</span>
+      </div>
+    </div>
+
+    <div class="coll ch-cool">
+      <div class="coll-head" onclick="tog(this)">
+        <span class="coll-head-label">🧘 Заминка — 7 мин</span>
+        <span class="coll-arr">▼</span>
+      </div>
+      <div class="coll-body">
+        Растяжка квадрицепса стоя — 2×40 сек на ногу<br>
+        Поза голубя — 2×45 сек на сторону<br>
+        МФР роллом: бедро + ягодицы — 3 мин<br>
+        Ягодичный мост на полу без нагрузки 1×20 (активное расслабление)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DAY 2 -->
+<div class="pane" id="p-d2">
+  <div class="dh dh-teal">
+    <div class="dh-title">День 2 — Верх</div>
+    <div class="dh-sub">Спина + плечи · ширина спины · задняя дельта · профилактика от ношения ребёнка</div>
+    <div class="dh-tags">
+      <span class="dtag dtag-teal">Ср</span>
+      <span class="dtag dtag-teal">~60 мин</span>
+      <span class="dtag dtag-teal">Спина</span>
+      <span class="dtag dtag-teal">Дельты</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="coll ch-warm">
+      <div class="coll-head" onclick="tog(this)">
+        <span class="coll-head-label">🔥 Разминка — 7–8 мин</span>
+        <span class="coll-arr">▼</span>
+      </div>
+      <div class="coll-body">
+        5 мин кардио<br>
+        Вращения плечами вперёд и назад — 2×15<br>
+        Тяга резиновой ленты к лицу — 2×15 (активация задней дельты)<br>
+        Кошка-корова 10 повторений<br>
+        Открывание книги лёжа (ротация грудного отдела) — 2×8 на сторону
+      </div>
+    </div>
+
+    <div class="ch">Тяговые движения — спина</div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">01</div><span class="ex-badge eb-mod">Усилено</span></div>
+      <div class="ex-name">Тяга вертикального блока широким хватом</div>
+      <div class="ex-note">Главное движение для ширины спины — создаёт V-форму и визуально сужает талию. Грудь слегка вперёд, лопатки вниз-назад до начала тяги, тяни к верхней части груди. Работать тяжелее чем сейчас — цель к неделе 8: 50–55 кг × 8.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×8–10</span>
+        <span class="mt mt-rest">Отдых: 120 сек</span>
+        <span class="mt mt-wt">Нед. 1: 40 кг → нед. 8: 50–55 кг</span>
+        <span class="mt mt-rpe">РПЕ 8–9</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">02</div><span class="ex-badge eb-mod">Изменено</span></div>
+      <div class="ex-name">Тяга гантели с упором грудью в наклонную скамью (45°)</div>
+      <div class="ex-note">Замена тяги штанги в наклоне стоя — убирает поясничный стресс, полностью изолирует мышцы спины. Обе руки поочерёдно. Акцент на нижние волокна широчайших — длинная тяга с полной амплитудой.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×10–12 на руку</span>
+        <span class="mt mt-rest">Отдых: 90 сек</span>
+        <span class="mt mt-wt">18–24 кг</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">03</div><span class="ex-badge eb-keep">Остаётся</span></div>
+      <div class="ex-name">Подтягивания с резинкой (пауза 2 сек наверху)</div>
+      <div class="ex-note">Оставить паузу наверху — сильный стимул для широчайших. Цель — каждые 3–4 недели уменьшать помощь резины на один уровень. При 3×8 без помощи — поздравляю.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×5–8</span>
+        <span class="mt mt-rest">Отдых: 90 сек</span>
+      </div>
+    </div>
+
+    <div class="ch">Жим + задняя дельта</div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">04</div><span class="ex-badge eb-keep">Остаётся</span></div>
+      <div class="ex-name">Жим гантелей на наклонной скамье 65°</div>
+      <div class="ex-note">12.5 кг — рабочий вес. С недели 5 попробовать 14–15 кг. Контроль лопаток — сведены и прижаты на протяжении всего подхода.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×10–12</span>
+        <span class="mt mt-rest">Отдых: 90 сек</span>
+        <span class="mt mt-wt">12.5 → 15 кг</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">05</div><span class="ex-badge eb-key">Важно — новое</span></div>
+      <div class="ex-name">Face Pull (тяга рукояти к лицу)</div>
+      <div class="ex-note">Задняя дельта + внешние ротаторы плеча. При регулярном ношении ребёнка 13–15 кг нагружаются трапеции и передние дельты — Face Pull компенсирует это и защищает от импинджмента. Трос на уровне лица, локти выше плеч, тяни к ушам.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×15</span>
+        <span class="mt mt-rest">Отдых: 60 сек</span>
+        <span class="mt mt-rpe">Каждую неделю</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">06</div><span class="ex-badge eb-mod">Суперсет</span></div>
+      <div class="ex-name">Разводки в стороны стоя + разведения в наклоне</div>
+      <div class="ex-note">Суперсет без отдыха: 10 боковых разводок + сразу 12 разведений в наклоне для задней дельты. Экономит время, даёт двойной объём на дельты. 7 кг → 8–9 кг с недели 5.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×(10+12)</span>
+        <span class="mt mt-rest">Отдых: 75 сек после суперсета</span>
+        <span class="mt mt-wt">7–9 кг</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">07</div><span class="ex-badge eb-keep">Остаётся</span></div>
+      <div class="ex-name">Разгибание на трицепс в кроссвере</div>
+      <div class="ex-note">25 кг — рабочий вес. Локти прижаты к корпусу, полная амплитуда разгибания. Финальное упражнение — можно сделать последний подход дроп-сетом.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×12</span>
+        <span class="mt mt-rest">Отдых: 60 сек</span>
+        <span class="mt mt-wt">25 кг</span>
+      </div>
+    </div>
+
+    <div class="coll ch-cool">
+      <div class="coll-head" onclick="tog(this)">
+        <span class="coll-head-label">🧘 Заминка — 7 мин</span>
+        <span class="coll-arr">▼</span>
+      </div>
+      <div class="coll-body">
+        Растяжка груди в дверном проёме — 2×30 сек<br>
+        Растяжка широчайших у стойки — 2×30 сек на сторону<br>
+        МФР роллом по грудному отделу — 2 мин<br>
+        Открывание книги лёжа — 8 повторений (завершение для осанки)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DAY 3 -->
+<div class="pane" id="p-d3">
+  <div class="dh dh-pur">
+    <div class="dh-title">День 3 — Низ Б</div>
+    <div class="dh-sub">Ягодицы + бицепс бедра · RDL как основное · задняя цепь в растяжении</div>
+    <div class="dh-tags">
+      <span class="dtag dtag-pur">Пт</span>
+      <span class="dtag dtag-pur">~65 мин</span>
+      <span class="dtag dtag-pur">Ягодицы</span>
+      <span class="dtag dtag-pur">Бицепс бедра</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="coll ch-warm">
+      <div class="coll-head" onclick="tog(this)">
+        <span class="coll-head-label">🔥 Разминка — 8–10 мин</span>
+        <span class="coll-arr">▼</span>
+      </div>
+      <div class="coll-body">
+        5 мин велотренажёр<br>
+        Кошка-корова 10 повторений<br>
+        Тяга ленты к пятке лёжа (активация бицепса бедра) — 2×15<br>
+        Ягодичный мост на полу с мини-лентой — 2×15<br>
+        Боковые выпады — 5 в каждую сторону<br>
+        Лёгкие RDL без веса — 10 повторений (проработать паттерн)
+      </div>
+    </div>
+
+    <div class="ch">Компаунд — задняя цепь</div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">01</div><span class="ex-badge eb-key">Замена становой</span></div>
+      <div class="ex-name">RDL (Румынская тяга) со штангой</div>
+      <div class="ex-note">Главная замена классической становой. Ноги почти прямые, таз уходит назад, штанга опускается по ногам до середины голени. Чувствуй растяжение в бицепсе бедра в нижней точке — именно здесь происходит стимул гипертрофии ягодиц. Спина строго нейтральная на всём диапазоне.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×10</span>
+        <span class="mt mt-rest">Отдых: 120 сек</span>
+        <span class="mt mt-wt">Нед. 1–4: 70–80 кг → нед. 8: 90–95 кг</span>
+        <span class="mt mt-rpe">РПЕ 8</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">02</div><span class="ex-badge eb-mod">Усилено</span></div>
+      <div class="ex-name">Ягодичный мост B-stance со штангой</div>
+      <div class="ex-note">Одна нога ставится ближе к ягодицам (рабочая), другая — дальше (опора). Основная работа ложится на ближнюю ногу. Выравнивает асимметрию, даёт более глубокое и изолированное сокращение. Чередуй с обычным мостом через тренировку.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×10–12 на сторону</span>
+        <span class="mt mt-rest">Отдых: 120 сек</span>
+        <span class="mt mt-wt">80–100 кг</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">03</div><span class="ex-badge eb-keep">Остаётся</span></div>
+      <div class="ex-name">RDL на одну ногу с гантелями (B-stance)</div>
+      <div class="ex-note">25+25 кг — отличное упражнение, оставить. Добавь паузу 2 сек в нижней точке для акцента на растяжении ягодиц. Следи чтобы таз не ротировался в сторону опорной ноги — это убирает нагрузку с ягодицы.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×12–15 на ногу</span>
+        <span class="mt mt-rest">Отдых: 60 сек</span>
+        <span class="mt mt-wt">25+25 кг</span>
+      </div>
+    </div>
+
+    <div class="ch">Изоляция бицепса бедра + финал</div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">04</div><span class="ex-badge eb-keep">Остаётся</span></div>
+      <div class="ex-name">Сгибание голени лёжа в тренажёре</div>
+      <div class="ex-note">43 кг — рабочий вес. Бицепс бедра изолированно. Темп 2-0-2, пауза 1 сек в верхней точке. Бёдра прижаты к подушке на всём диапазоне.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×10–12</span>
+        <span class="mt mt-rest">Отдых: 75 сек</span>
+        <span class="mt mt-wt">43 кг</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">05</div><span class="ex-badge eb-mod">Изменено</span></div>
+      <div class="ex-name">Жим ногами — широкая постановка (стопы вверху платформы)</div>
+      <div class="ex-note">Жим ногами переходит из основного в дополнительное упражнение. Широкая постановка стоп высоко на платформе — акцент на ягодицы и внутреннюю поверхность бедра. Опускать платформу глубоко, не замыкать колени в верхней точке.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×12–15</span>
+        <span class="mt mt-rest">Отдых: 90 сек</span>
+        <span class="mt mt-wt">130–150 кг</span>
+      </div>
+    </div>
+
+    <div class="ex">
+      <div class="ex-top"><div class="ex-num">06</div><span class="ex-badge eb-keep">Остаётся</span></div>
+      <div class="ex-name">Гиперэкстензия с округлённой спиной</div>
+      <div class="ex-note">25 кг — рабочий вес. Округлённая спина переносит акцент с разгибателей позвоночника на ягодицы и бицепс бедра. Пауза 1 сек в верхней точке с максимальным сокращением ягодиц.</div>
+      <div class="ex-meta">
+        <span class="mt mt-sets">3×15</span>
+        <span class="mt mt-rest">Отдых: 60 сек</span>
+        <span class="mt mt-wt">25 кг</span>
+      </div>
+    </div>
+
+    <div class="coll ch-cool">
+      <div class="coll-head" onclick="tog(this)">
+        <span class="coll-head-label">🧘 Заминка — 7–8 мин</span>
+        <span class="coll-arr">▼</span>
+      </div>
+      <div class="coll-body">
+        Растяжка бицепса бедра сидя — 2×45 сек<br>
+        Поза голубя — 2×45 сек на сторону<br>
+        МФР роллом задней поверхности бедра — 2 мин<br>
+        Лягушка (растяжка приводящих лёжа) — 1 мин
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NUTRITION -->
+<div class="pane" id="p-nutr">
+  <div class="ib ib-amber">
+    <div class="ib-title">Главная проблема — дефицит слишком большой</div>
+    При 10–12 тыс. шагов + велосипед 2–3×/нед + 3 силовые + ношение ребёнка расход составляет ~2 200–2 350 ккал/день. 1 500 ккал создают дефицит 700–800 ккал — это запускает катаболизм мышц и тормозит рекомпозицию. Повышение калорийности парадоксально ускорит результат.
+  </div>
+
+  <div class="slabel">Целевая калорийность</div>
+  <div class="kcal-grid">
+    <div class="kc"><div class="kc-label">Расчётный TDEE</div><div class="kc-val" style="color:var(--t2)">2 200–2 350</div><div class="kc-sub">ккал/день</div></div>
+    <div class="kc"><div class="kc-label">Текущий минимум</div><div class="kc-val" style="color:#e07070">1 500</div><div class="kc-sub">слишком агрессивно</div></div>
+    <div class="kc"><div class="kc-label">Тренировочный день</div><div class="kc-val" style="color:var(--teal)">1 950–2 050</div><div class="kc-sub">ккал — цель</div></div>
+    <div class="kc"><div class="kc-label">День отдыха</div><div class="kc-val" style="color:var(--teal2)">1 750–1 850</div><div class="kc-sub">ккал — цель</div></div>
+  </div>
+
+  <div class="slabel">Макросы — целевые</div>
+  <div class="card" style="padding:14px">
+    <div class="macro-row">
+      <div class="macro-label">Белок</div>
+      <div class="macro-track"><div class="macro-fill" style="width:100%;background:var(--teal)"></div></div>
+      <div class="macro-val">130–145 г</div>
+    </div>
+    <div style="font-size:11.5px;color:var(--t2);margin-bottom:12px">2.1–2.3 г/кг массы тела — уже идеально, держать</div>
+    <div class="macro-row">
+      <div class="macro-label">Жиры</div>
+      <div class="macro-track"><div class="macro-fill" style="width:62%;background:var(--amber)"></div></div>
+      <div class="macro-val">55–65 г</div>
+    </div>
+    <div style="font-size:11.5px;color:var(--t2);margin-bottom:12px">Поднять с 50 до 55–65 г для гормонального баланса</div>
+    <div class="macro-row">
+      <div class="macro-label">Углеводы<br><span style="font-size:10px">(трен. день)</span></div>
+      <div class="macro-track"><div class="macro-fill" style="width:78%;background:var(--purple)"></div></div>
+      <div class="macro-val">195–215 г</div>
+    </div>
+    <div style="font-size:11.5px;color:var(--t2)">День отдыха: снизить до 150–170 г</div>
+  </div>
+
+  <div class="slabel">Углеводный цикл по дням</div>
+  <div class="card">
+    <div class="ex" style="border-bottom:0.5px solid var(--line)">
+      <div class="ex-name" style="font-size:13px">Тренировочный день</div>
+      <div class="ex-note">До тренировки: 30–40 г быстрых углеводов (банан, рис, хлеб) за 45–60 мин. После: белок + углеводы в течение 1–1.5 ч. Общая калорийность 1 950–2 050 ккал.</div>
+      <div class="ex-meta"><span class="mt mt-sets">1 950–2 050 ккал</span><span class="mt mt-wt">Углеводы: 195–215 г</span></div>
+    </div>
+    <div class="ex" style="border-bottom:0.5px solid var(--line)">
+      <div class="ex-name" style="font-size:13px">Активный день без зала (велосипед)</div>
+      <div class="ex-note">Умеренные углеводы — 170–185 г. Белок на том же уровне. Не урезать ниже 1 800 ккал даже в дни без зала при велосипеде.</div>
+      <div class="ex-meta"><span class="mt mt-sets">1 850–1 950 ккал</span></div>
+    </div>
+    <div class="ex">
+      <div class="ex-name" style="font-size:13px">День настоящего отдыха</div>
+      <div class="ex-note">1 750–1 850 ккал. Акцент на белок и жиры, углеводы до 150–170 г. Мягкий дефицит без стресса для ЦНС.</div>
+      <div class="ex-meta"><span class="mt mt-sets">1 750–1 850 ккал</span><span class="mt mt-rpe">Углеводы: 150–170 г</span></div>
+    </div>
+  </div>
+
+  <div class="slabel">Нутриенты под контроль</div>
+  <div class="card">
+    <div class="supp-row">
+      <div class="supp-icon">🩸</div>
+      <div><div class="supp-name">Железо и ферритин</div><div class="supp-note">Высокая активность + женский организм = риск субдефицита. Сдать анализ крови, добавить красное мясо 2–3 раза в неделю или проконсультироваться с врачом по добавкам.</div></div>
+    </div>
+    <div class="supp-row">
+      <div class="supp-icon">💊</div>
+      <div><div class="supp-name">Магний (глицинат или малат)</div><div class="supp-note">300–400 мг перед сном. При интенсивных тренировках и высоком NEAT расход магния повышен. Улучшает качество сна и восстановление.</div></div>
+    </div>
+    <div class="supp-row">
+      <div class="supp-icon">☀️</div>
+      <div><div class="supp-name">Витамин D3 + K2</div><div class="supp-note">2 000–4 000 МЕ/день с жирной едой. Влияет на гормональный фон, силу и иммунитет. K2 (100–200 мкг) — направляет кальций в кости.</div></div>
+    </div>
+    <div class="supp-row">
+      <div class="supp-icon">💪</div>
+      <div><div class="supp-name">Креатин моногидрат</div><div class="supp-note">5 г/день в любое время. Лучший соотношением цена/результат. Повышает силу, объём мышц и ускоряет рекомпозицию. Особенно эффективен при уже высоких рабочих весах — добавит 5–10% к производительности.</div></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end content -->
+
+<!-- Bottom nav -->
+<div class="nav">
+  <div class="nb on" onclick="sw('home',this)">
+    <div class="nb-icon">🏠</div>
+    <div class="nb-label">Обзор</div>
+  </div>
+  <div class="nb" onclick="sw('d1',this)">
+    <div class="nb-icon" style="background:var(--rose-bg);font-size:11px;font-weight:700;color:var(--rose)">Д1</div>
+    <div class="nb-label">Низ А</div>
+  </div>
+  <div class="nb" onclick="sw('d2',this)">
+    <div class="nb-icon" style="background:var(--teal-bg);font-size:11px;font-weight:700;color:var(--teal)">Д2</div>
+    <div class="nb-label">Верх</div>
+  </div>
+  <div class="nb" onclick="sw('d3',this)">
+    <div class="nb-icon" style="background:var(--pur-bg);font-size:11px;font-weight:700;color:var(--purple)">Д3</div>
+    <div class="nb-label">Низ Б</div>
+  </div>
+  <div class="nb" onclick="sw('nutr',this)">
+    <div class="nb-icon">🥗</div>
+    <div class="nb-label">Питание</div>
+  </div>
+</div>
+
+<script>
+function sw(id,btn){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  btn.classList.add('on');
+  document.querySelector('.content').scrollTop=0;
+}
+function tog(btn){
+  const body=btn.nextElementSibling;
+  const arr=btn.querySelector('.coll-arr');
+  body.classList.toggle('open');
+  if(arr)arr.classList.toggle('open');
+}
+</script>
+</body>
+</html>
